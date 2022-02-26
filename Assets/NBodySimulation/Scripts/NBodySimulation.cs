@@ -6,8 +6,8 @@ public class NBodySimulation : Simulation
     private NBodyPrefabs prefabs;
 
     [Header("Parameters")]
-    //[SerializeField, Min(0)] private float newtonG = 20f;
     [SerializeField, Min(0)] private float mass = 1f;
+    [SerializeField, Min(0.01f)] private float scale = 2f;
     [SerializeField, Range(3, 100)] private int numBodies = 10;
     [SerializeField, Min(0.00001f), Tooltip("Softening length")] float epsilon = 0.1f;
     [SerializeField, Min(0)] private float radialMean = 10;
@@ -15,12 +15,15 @@ public class NBodySimulation : Simulation
     [SerializeField, Min(0)] private float speedMean = 0;
     [SerializeField, Min(0)] private float speedSigma = 0.5f;
     [SerializeField, Min(1)] private int maxNumSteps = 1000;
+    [SerializeField, Min(0)] private float maxAllowedDistance = 1000;
     [SerializeField, Min(1)] private int samplePeriod = 100;
+    [SerializeField] private bool printSamples = false;
 
     [Header("Units")]
     [SerializeField] private Units.UnitLength unitLength = Units.UnitLength.AU;
     [SerializeField] private Units.UnitMass unitMass = Units.UnitMass.SolarMass;
     [SerializeField] private Units.UnitTime unitTime = Units.UnitTime.Year;
+    [SerializeField, Min(0)] private float timeScale = 1;
     private float newtonG;
 
     private enum Solver { Naive, Verlet }
@@ -49,9 +52,9 @@ public class NBodySimulation : Simulation
     // Units
     private float G => newtonG;
 
-    // Running average quantities
-    private int iteration;
-    private int numSamples;
+    // Running quantities
+    private int iteration;  // number of time steps 
+    private int numSamples;  // number of average virial computations
     private float averageVirial;
     private float previousVirial;
 
@@ -69,7 +72,10 @@ public class NBodySimulation : Simulation
 
         // Create all objects
         prefabs.InstantiateAllPrefabs(numBodies);
+    }
 
+    private void Start()
+    {
         Reset();
     }
 
@@ -87,9 +93,18 @@ public class NBodySimulation : Simulation
         iteration = 0;
         numSamples = 0;
 
-        ComputeInitialConditions(42);
-        ApplyInitialConditions(true);  // true to work in CM frame
-        ComputeConservedQuantities();  // K, U, vector L wrt. origin
+        Random.InitState(42);
+
+        GenerateInitialPositions(true);
+        potentialEnergy = ComputePotentialEnergy();
+        Debug.Log(transform.name + " U : " + U);
+
+        GenerateInitialVelocities(true, true);
+        kineticEnergy = ComputeKineticEnergy();
+        Debug.Log(transform.name + " K : " + K);
+
+        angularMomentum = ComputeAngularMomentum(Vector3.zero);  // about the origin
+        magnitudeL = angularMomentum.magnitude;
 
         // Draw the center of mass
         if (prefabs.centerOfMass)
@@ -113,9 +128,11 @@ public class NBodySimulation : Simulation
             accelerationsPrev.Add(Vector3.zero);
         }
 
-        // Compute starting virial value 2K + U
-        averageVirial = 2 * kineticEnergy + potentialEnergy;
+        // Compute starting virial value
+        averageVirial = 2 * K + U;
         previousVirial = averageVirial;
+
+        Debug.Log(transform.name + " Starting V = " + (2 * K + U));
 
         if (paused)
         {
@@ -144,7 +161,7 @@ public class NBodySimulation : Simulation
         }
 
         // Take an integration step
-        float substep = Time.fixedDeltaTime / numSubsteps;
+        float substep = timeScale * Time.fixedDeltaTime / numSubsteps;
         switch (solver)
         {
             case Solver.Naive:
@@ -166,17 +183,27 @@ public class NBodySimulation : Simulation
         // Compute running average 2K + U
         if (iteration % samplePeriod == 0)
         {
-            float[] energies = Energies();
+            float[] energies = Energies();  // also contains max particle distance
             numSamples++;
 
             float totalEnergy = energies[0] + energies[1];
-            Debug.Log("Step " + iteration + " : " + (K + U) + ", " + totalEnergy);
 
             // New average virial (valid for numSamples > 0)
             float currentVirial = 2 * energies[0] + energies[1];
             averageVirial = ((numSamples - 1) * averageVirial + 0.5f * (previousVirial + currentVirial)) / numSamples;
             previousVirial = currentVirial;
-            Debug.Log("<V> : " + averageVirial);
+
+            if (printSamples)
+            {
+                Debug.Log("Step " + iteration + " : " + (K + U) + ", " + totalEnergy);
+                Debug.Log("<V> : " + averageVirial);
+            }
+
+            // Reset if a body has exceeded max distance
+            if (energies[2] >= maxAllowedDistance)
+            {
+                Reset();
+            }
 
             //Vector3 currentR = Vector3.zero;  // CM position
             //Vector3 currentV = Vector3.zero;  // CM velocity
@@ -187,10 +214,6 @@ public class NBodySimulation : Simulation
             //}
             //Debug.Log("R : " + currentR / numBodies);
             //Debug.Log("V : " + currentV / numBodies);
-
-            //runningK += currentK;
-            //runningU += currentU;
-            //Debug.Log("V : " + ((2 * runningK / time) + runningU / time));
         }
 
         if (iteration >= maxNumSteps)
@@ -245,47 +268,31 @@ public class NBodySimulation : Simulation
         }
     }
 
-    private void ComputeInitialConditions(int seed)
+    private void GenerateInitialPositions(bool workInCMFrame = true)
     {
-        Random.InitState(seed);
-
-        // Initial particle positions and velocities
         positions = new List<Vector3>(numBodies);
-        velocities = new List<Vector3>(numBodies);
-
-        // Center of mass position and velocity
         positionCM = Vector3.zero;
-        velocityCM = Vector3.zero;
 
-        // Set up initial conditions (all masses equal!)
+        float turnFraction = 0.5f * (1 + Mathf.Sqrt(5));  // golden ratio
+
         for (int i = 0; i < numBodies; i++)
         {
-            float distance = Utils.Random.NormalValue(radialMean, radialSigma);
-            //Vector3 position = radialSize * Random.insideUnitSphere;
-            Vector3 position = Mathf.Abs(distance) * Random.onUnitSphere;
+            float t = i / (numBodies - 1f);
+            float inclination = Mathf.Acos(1 - 2 * t);
+            float azimuth = 2 * Mathf.PI * turnFraction * i;
+
+            float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
+            float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
+            float z = Mathf.Cos(inclination);
+
+            float radius = Mathf.Abs(Utils.Random.NormalValue(radialMean, radialSigma));
+            //Vector3 position = radius * Random.onUnitSphere;
+            Vector3 position = radius * new Vector3(x, y, z);
             positions.Add(position);
             positionCM += position;
-
-            float vx = Utils.Random.NormalValue(speedMean, speedSigma);
-            float vy = Utils.Random.NormalValue(speedMean, speedSigma);
-            float vz = Utils.Random.NormalValue(speedMean, speedSigma);
-            //Vector3 velocity = maxSpeed * Random.insideUnitSphere;
-            Vector3 velocity = new Vector3(vx, vy, vz);
-            velocities.Add(velocity);
-            velocityCM += velocity;
         }
 
-        // Compute CM position and velocity
         positionCM /= numBodies;
-        velocityCM /= numBodies;
-    }
-
-    private void ApplyInitialConditions(bool workInCMFrame = true)
-    {
-        if (prefabs.bodies == null)
-        {
-            return;
-        }
 
         // Work in the CM frame (i.e. shift the system to the origin)
         if (workInCMFrame)
@@ -293,47 +300,99 @@ public class NBodySimulation : Simulation
             for (int i = 0; i < numBodies; i++)
             {
                 positions[i] -= positionCM;
-                velocities[i] -= velocityCM;
             }
 
             positionCM = Vector3.zero;
-            velocityCM = Vector3.zero;
         }
 
-        // Particle diameter
-        float scale = 2 * Mathf.Pow(3f * mass / 4f / Mathf.PI, 0.333f);
-
         // Assign initial positions to the actual body Transforms
-        for (int i = 0; i < numBodies; i++)
+        if (prefabs.bodies != null)
         {
-            prefabs.bodies[i].position = positions[i];
-            prefabs.bodies[i].localScale = scale * Vector3.one;
+            for (int i = 0; i < numBodies; i++)
+            {
+                prefabs.bodies[i].position = positions[i];
+                prefabs.bodies[i].localScale = scale * Vector3.one;
+            }
         }
     }
 
-    private void ComputeConservedQuantities()
+    private float ComputePotentialEnergy()
     {
-        // Compute conserved quantities
-        kineticEnergy = 0;
-        potentialEnergy = 0;
-        angularMomentum = Vector3.zero;  // about the origin
+        float currentU = 0;
         for (int i = 0; i < numBodies; i++)
         {
-            kineticEnergy += 0.5f * mass * velocities[i].sqrMagnitude;
-            angularMomentum += mass * Vector3.Cross(positions[i], velocities[i]);
-
             for (int j = i + 1; j < numBodies; j++)
             {
-                potentialEnergy += GravitationalPotentialEnergy(positions[j], positions[i]);
+                currentU += GravitationalPotentialEnergy(positions[i], positions[j]);
             }
         }
+        return currentU;
+    }
 
-        magnitudeL = angularMomentum.magnitude;
+    private void GenerateInitialVelocities(bool workInCMFrame = true, bool matchHalfU = true)
+    {
+        float mean = speedMean;
+        float sigma = speedSigma;
+        if (matchHalfU)
+        {
+            mean = Mathf.Sqrt(-U / mass / numBodies);
+            sigma = 0.1f * mean;
+        }
+
+        Debug.Log(" mean speed " + mean);
+
+        velocities = new List<Vector3>(numBodies);
+        velocityCM = Vector3.zero;
+
+        for (int i = 0; i < numBodies; i++)
+        {
+            //float vx = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
+            //float vy = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
+            //float vz = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
+            //float vz = -(position.x * vx + position.y * vy) / position.z;
+            //Vector3 velocity = new Vector3(vx, vy, vz);
+            float speed = Utils.Random.NormalValue(mean, sigma);
+            Vector3 velocity = speed * Random.onUnitSphere;
+            velocities.Add(velocity);
+            velocityCM += velocity;
+        }
+
+        velocityCM /= numBodies;
+
+        if (workInCMFrame)
+        {
+            for (int i = 0; i < numBodies; i++)
+            {
+                velocities[i] -= velocityCM;
+            }
+
+            velocityCM = Vector3.zero;
+        }
+    }
+
+    private float ComputeKineticEnergy()
+    {
+        float currentK = 0;
+        for (int i = 0; i < numBodies; i++)
+        {
+            currentK += 0.5f * mass * velocities[i].sqrMagnitude;
+        }
+        return currentK;
+    }
+
+    private Vector3 ComputeAngularMomentum(Vector3 origin)
+    {
+        Vector3 currentL = Vector3.zero;
+        for (int i = 0; i < numBodies; i++)
+        {
+            currentL += mass * Vector3.Cross(positions[i] - origin, velocities[i]);
+        }
+        return currentL;
     }
 
     public float GravitationalPotentialEnergy(Vector3 position1, Vector3 position2)
     {
-        return -G * mass * mass / (position1 - position2).magnitude;
+        return -G * mass * mass / Vector3.Distance(position1, position2);
     }
 
     // Acceleration of the body at index due to the positions of all other bodies
@@ -354,16 +413,38 @@ public class NBodySimulation : Simulation
     {
         float currentK = 0;
         float currentU = 0;
+        float maxDistance = 0;
         for (int i = 0; i < numBodies; i++)
         {
             currentK += 0.5f * mass * velocities[i].sqrMagnitude;
+            maxDistance = Mathf.Max(maxDistance, positions[i].magnitude);
 
             for (int j = i + 1; j < numBodies; j++)
             {
-                currentU += -G * mass * mass / (positions[j] - positions[i]).magnitude;
+                currentU += GravitationalPotentialEnergy(positions[i], positions[j]);
             }
         }
 
-        return new float[2] { currentK, currentU };
+        return new float[3] { currentK, currentU, maxDistance };
+    }
+
+    public Vector3 GetVelocity(int index)
+    {
+        Vector3 velocity = Vector3.zero;
+        if (index >= 0 && index < numBodies)
+        {
+            velocity = velocities[index];
+        }
+        return velocity;
+    }
+
+    public float GetMass(int index)
+    {
+        float value = 0;
+        if (index >= 0 && index < numBodies)
+        {
+            value = mass;
+        }
+        return value;
     }
 }

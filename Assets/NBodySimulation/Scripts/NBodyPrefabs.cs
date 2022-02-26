@@ -94,4 +94,10 @@ public class NBodyPrefabs : MonoBehaviour
             light.gameObject.SetActive(visible);
         }
     }
+
+    public Material GetBodyMaterial()
+    {
+        // TODO should check that the object exists etc.
+        return bodyPrefab.GetComponent<MeshRenderer>().material;
+    }
 }

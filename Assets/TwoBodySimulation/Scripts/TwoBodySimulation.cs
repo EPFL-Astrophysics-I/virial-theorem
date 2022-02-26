@@ -92,12 +92,12 @@ public class TwoBodySimulation : Simulation
         body2.localScale = 2 * Mathf.Pow(3f * mass2 / 4f / Mathf.PI, 0.333f) * Vector3.one;
         body2.localPosition = initPosition2;
 
-        if (prefabs.centerOfMass)
-        {
-            // Center of mass marker should always be at the origin
-            prefabs.centerOfMass.localScale = 0.5f * Vector3.one;
-            prefabs.centerOfMass.localPosition += 0.1f * Vector3.down;
-        }
+        //if (prefabs.centerOfMass)
+        //{
+        //    // Center of mass marker should always be at the origin
+        //    prefabs.centerOfMass.localScale = 0.5f * Vector3.one;
+        //    prefabs.centerOfMass.localPosition += 0.1f * Vector3.down;
+        //}
 
         Reset();
 

@@ -16,6 +16,10 @@ public class IntegralAnimation : Simulation
     [SerializeField] private float xMax = 5;
     [SerializeField] private float speed = 0.5f;
     [SerializeField] private float lineWidth = 0.1f;
+    [SerializeField] private int numAreaSamples = 10;
+
+    [Header("Game Events")]
+    [SerializeField] GameEvent onIntegrate;
 
     private LineRenderer curve;
     private Transform point;
@@ -23,8 +27,7 @@ public class IntegralAnimation : Simulation
     private AreaUnderCurve area;
     private LineRenderer tMarker;
 
-    private List<float> x;
-    private List<Vector3> values;  // Function values
+    [HideInInspector] public float integralProgress = 0;
 
     private void Awake()
     {
@@ -79,7 +82,14 @@ public class IntegralAnimation : Simulation
             tMarker.startWidth = 0.04f;
             tMarker.endWidth = 0.04f;
             tMarker.positionCount = 2;
-            tMarker.SetPositions(new Vector3[] { xMax * Vector3.right, new Vector3(xMax, -0.2f, 0) });
+            Vector3 x = xMax * Vector3.right;
+            tMarker.SetPositions(new Vector3[] { x + 0.1f * Vector3.down, x + 0.1f * Vector3.up });
+
+            Transform label = tMarker.transform.Find("Label");
+            if (label)
+            {
+                label.localPosition = x + 0.4f * Vector3.down;
+            }
         }
     }
 
@@ -87,22 +97,28 @@ public class IntegralAnimation : Simulation
     {
         yield return new WaitForSeconds(startDelay);
 
-        x = new List<float> { xMin };
-        values = new List<Vector3>
+        List<Vector3> values = new List<Vector3>
         {
-            Function(x[0])
+            Function(xMin)
         };
 
         if (area)
         {
             area.Clear();
+            integralProgress = 0;
+            if (onIntegrate)
+            {
+                onIntegrate.Raise();
+            }
         }
 
-        while (x[x.Count - 1] < xMax)
+        float t = 0;
+        float totalTime = (xMax - xMin) / speed;
+
+        while (t < totalTime)
         {
-            // Compute new function value
-            float newX = x[x.Count - 1] + Time.fixedDeltaTime * speed;
-            x.Add(newX);
+            t += Time.fixedDeltaTime;
+            float newX = xMin + speed * t;
             Vector3 value = Function(newX);
 
             values.Add(value);
@@ -113,7 +129,6 @@ public class IntegralAnimation : Simulation
             {
                 point.localPosition = value;
             }
-
             yield return null;
         }
 
@@ -131,28 +146,44 @@ public class IntegralAnimation : Simulation
     {
         yield return new WaitForSeconds(startDelay);
 
-        area.AddPoint(values[0]);
+        area.AddPoint(Function(xMin));
 
-        int increment = 5;
-        int lastIndex = 0;
-        for (int i = increment; i < x.Count; i += increment)
+        float t = 0;
+        float totalTime = (xMax - xMin) / speed;
+        float stepSize = (xMax - xMin) / numAreaSamples;
+        float xPrev = xMin;
+
+        while (t < totalTime)
         {
-            area.AddPoint(values[i]);
-            lastIndex = i;
-            yield return new WaitForSeconds(2 * Time.fixedDeltaTime);
+            t += Time.fixedDeltaTime;
+            float newX = xMin + speed * t;
+            if (newX - xPrev >= stepSize)
+            {
+                area.AddPoint(Function(newX));
+                xPrev = newX;
+
+                // Alert the IntegralSlideController
+                integralProgress = t / totalTime;
+                if (onIntegrate)
+                {
+                    onIntegrate.Raise();
+                }
+            }
+
+            yield return null;
         }
 
-        if (lastIndex != x.Count - 1)
+        if (xPrev < xMax)
         {
-            area.AddPoint(values[values.Count - 1]);
+            area.AddPoint(Function(xMax));
         }
 
-        StartCoroutine(DrawCurve(1));
+        StartCoroutine(DrawCurve(3));
     }
 
     private Vector3 Function(float x)
     {
-        return x * Vector3.right + (0.75f * (Mathf.Cos(2 * Mathf.PI * x / (xMax + 2)) + 2.5f) * Vector3.up);
+        return x * Vector3.right + (0.75f * (Mathf.Cos(2 * Mathf.PI * x / 12 - 0.3f) + 2.5f) * Vector3.up);
     }
 
     public override void Reset()
@@ -162,6 +193,11 @@ public class IntegralAnimation : Simulation
         if (area)
         {
             area.Clear();
+            integralProgress = 0;
+            if (onIntegrate)
+            {
+                onIntegrate.Raise();
+            }
         }
 
         if (curve)

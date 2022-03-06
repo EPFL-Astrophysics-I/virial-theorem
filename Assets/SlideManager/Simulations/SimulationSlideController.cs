@@ -4,7 +4,7 @@
 // GameObject in order for the SlideManager to control the simulation's visibility
 public abstract class SimulationSlideController : MonoBehaviour
 {
-    [SerializeField] private bool autoPlay = true;
+    [SerializeField] protected bool autoPlay = true;
     [SerializeField] protected Simulation simulation;
 
     // Simulations are activated by SlideManager when changing slides

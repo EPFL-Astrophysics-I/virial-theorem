@@ -16,24 +16,11 @@ public class NBodyPrefabs : MonoBehaviour
     [HideInInspector] public Vector angularMomentumVector;
     [HideInInspector] public List<Transform> lights;
 
+    private Transform bodyContainer;
+
     public void InstantiateAllPrefabs(int numBodies)
     {
-        if (bodyPrefab)
-        {
-            bodies = new List<Transform>(numBodies);
-            Transform container = new GameObject("Bodies").transform;
-            container.SetParent(transform);
-
-            for (int i = 0; i < numBodies; i++)
-            {
-                bodies.Add(Instantiate(bodyPrefab, container).transform);
-                bodies[i].name = "Body " + i;
-            }
-        }
-        else
-        {
-            Debug.LogWarning("No body prefab assigned!");
-        }
+        CreateBodies(numBodies);
 
         if (centerOfMassPrefab)
         {
@@ -99,5 +86,39 @@ public class NBodyPrefabs : MonoBehaviour
     {
         // TODO should check that the object exists etc.
         return bodyPrefab.GetComponent<MeshRenderer>().material;
+    }
+
+    public void CreateBodies(int numBodies)
+    {
+        if (bodyPrefab)
+        {
+            bodies = new List<Transform>(numBodies);
+            bodyContainer = new GameObject("Bodies").transform;
+            bodyContainer.SetParent(transform);
+
+            for (int i = 0; i < numBodies; i++)
+            {
+                bodies.Add(Instantiate(bodyPrefab, bodyContainer).transform);
+                bodies[i].name = "Body " + i;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No body prefab assigned!");
+        }
+    }
+
+    public void DestroyBodies()
+    {
+        foreach (Transform body in bodies)
+        {
+            Destroy(body.gameObject);
+        }
+
+        if (bodyContainer)
+        {
+            Destroy(bodyContainer.gameObject);
+            bodyContainer = null;
+        }
     }
 }

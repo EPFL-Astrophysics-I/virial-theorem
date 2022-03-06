@@ -2,19 +2,20 @@
 using UnityEditor;
 using UnityEngine;
 
-public class NBodySimulation : Simulation
+public class FastNBodySimulation : Simulation
 {
     private NBodyPrefabs prefabs;
 
     [Header("Parameters")]
     [SerializeField, Min(0)] private float mass = 1f;
-    [SerializeField, Min(0.01f)] private float bodyScale = 2f;
+    [SerializeField, Min(0.01f)] private float bodyScale = 1f;
     [SerializeField, Range(3, 100)] private int numBodies = 10;
     [SerializeField, Min(0.00001f), Tooltip("Softening length")] float epsilon = 0.1f;
     [SerializeField, Min(0)] private float radialMean = 10;
     [SerializeField, Min(0)] private float radialSigma = 2;
     [SerializeField, Min(0)] private float speedMean = 0;
     [SerializeField, Min(0)] private float speedSigma = 0.5f;
+    [SerializeField] private bool useMaxNumSteps = true;
     [SerializeField, Min(1)] private int maxNumSteps = 1000;
     [SerializeField, Min(0)] private float maxAllowedDistance = 1000;
     [SerializeField, Min(1)] private int samplePeriod = 100;
@@ -27,20 +28,30 @@ public class NBodySimulation : Simulation
     [SerializeField, Min(0)] private float timeScale = 1;
     private float newtonG;
 
-    private enum Solver { Naive, Verlet }
+    private enum Solver { Euler, Verlet, RK4 }
     [Header("Solver")]
-    [SerializeField] private Solver solver = Solver.Naive;
-    [SerializeField, Min(1)] private int numSubsteps = 10;
+    [SerializeField] private Solver solver = Solver.RK4;
+    [SerializeField, Min(1)] private int numSubsteps = 1;
 
     [Header("Game Events")]
     [SerializeField] private GameEvent onMaxDistanceReached;
     [SerializeField] private GameEvent onComputeEnergies;
 
+    // Integration arrays
+    private double[] store;
+    private double[] k1;
+    private double[] k2;
+    private double[] k3;
+    private double[] k4;
+    int numEquations;
+
     // Quantities of motion
-    private List<Vector3> positions;
-    private List<Vector3> velocities;
-    private List<Vector3> accelerations;
-    private List<Vector3> accelerationsPrev;  // Keep track of previous accel. for Verlet solver
+    private double[] x;  // positions and velocities
+    //private double[] xPrev;
+    //private List<Vector3> positions;
+    //private List<Vector3> velocities;
+    //private List<Vector3> accelerations;
+    //private List<Vector3> accelerationsPrev;  // Keep track of previous accel. for Verlet solver
     private float currentK;
     private float currentU;
     private float totalEnergy;
@@ -107,6 +118,14 @@ public class NBodySimulation : Simulation
 
         Random.InitState(42);
 
+        // Allocate array memory corresponding to the current number of bodies
+        numEquations = 6 * numBodies;
+        store = new double[numEquations];
+        k1 = new double[numEquations];
+        k2 = new double[numEquations];
+        k3 = new double[numEquations];
+        k4 = new double[numEquations];
+
         if (generatePositions)
         {
             GenerateInitialPositions(true);
@@ -131,7 +150,9 @@ public class NBodySimulation : Simulation
             Debug.Log("K : " + K);
         }
 
-        ComputeInitAccelerations();
+        // For Verlet
+        RateOfChange(x, store);
+        //ComputeInitAccelerations();
 
         angularMomentum = ComputeAngularMomentum(Vector3.zero);  // about the origin
         magnitudeL = angularMomentum.magnitude;
@@ -175,14 +196,14 @@ public class NBodySimulation : Simulation
             prefabs.angularMomentumVector.Redraw();
         }
 
-        // Take an integration step
+        // Take an integration step + move the actual game objects
         float substep = timeScale * Time.fixedDeltaTime / numSubsteps;
         switch (solver)
         {
-            case Solver.Naive:
+            case Solver.Euler:
                 for (int i = 0; i < numSubsteps; i++)
                 {
-                    NaiveStep(substep);
+                    EulerStep(substep);
                 }
                 break;
             case Solver.Verlet:
@@ -191,8 +212,20 @@ public class NBodySimulation : Simulation
                     VerletStep(substep);
                 }
                 break;
+            case Solver.RK4:
+                for (int i = 0; i < numSubsteps; i++)
+                {
+                    RK4Step(substep);
+                }
+                break;
             default:
                 break;
+        }
+
+        // Move the bodies
+        for (int i = 0; i < numBodies; i++)
+        {
+            prefabs.bodies[i].position = new Vector3((float)x[i * 6 + 0], (float)x[i * 6 + 1], (float)x[i * 6 + 2]);
         }
 
         // Compute running average 2K + U
@@ -218,91 +251,155 @@ public class NBodySimulation : Simulation
                 onMaxDistanceReached.Raise();
             }
 
+            // Broadcast that energy values have been updated
             if (onComputeEnergies)
             {
                 onComputeEnergies.Raise();
             }
-
-            //Vector3 currentR = Vector3.zero;  // CM position
-            //Vector3 currentV = Vector3.zero;  // CM velocity
-            //for (int i = 0; i < numBodies; i++)
-            //{
-            //    currentR += positions[i];
-            //    currentV += velocities[i];
-            //}
-            //Debug.Log("R : " + currentR / numBodies);
-            //Debug.Log("V : " + currentV / numBodies);
         }
 
-        if (iteration >= maxNumSteps)
+        if (useMaxNumSteps && iteration >= maxNumSteps)
         {
             Pause();
         }
     }
 
-    private void NaiveStep(float deltaTime)
+    private void EulerStep(float deltaTime)
     {
-        // Compute current acceleration of each body
-        for (int i = 0; i < numBodies; i++)
+        // Use k1 to hold xdot
+        RateOfChange(x, k1);
+        for (int i = 0; i < numEquations; i++)
         {
-            accelerations[i] = Acceleration(i);
-        }
-
-        // Update positions, velocities, and the actual body transforms
-        for (int i = 0; i < numBodies; i++)
-        {
-            positions[i] += velocities[i] * deltaTime;
-            if (prefabs.bodies != null)
-            {
-                prefabs.bodies[i].position = positions[i];
-            }
-            velocities[i] += accelerations[i] * deltaTime;
+            x[i] += k1[i] * deltaTime;
         }
     }
 
     private void VerletStep(float deltaTime)
     {
-        // Update positions based on current velocities and accelerations
         for (int i = 0; i < numBodies; i++)
         {
-            positions[i] += deltaTime * (velocities[i] + 0.5f * deltaTime * accelerations[i]);
-            if (prefabs.bodies != null)
-            {
-                prefabs.bodies[i].position = positions[i];
-            }
+            // Update positions
+            x[i * 6 + 0] += deltaTime * (x[i * 6 + 3] + 0.5f * deltaTime * store[i * 6 + 3]);
+            x[i * 6 + 1] += deltaTime * (x[i * 6 + 4] + 0.5f * deltaTime * store[i * 6 + 4]);
+            x[i * 6 + 2] += deltaTime * (x[i * 6 + 5] + 0.5f * deltaTime * store[i * 6 + 5]);
         }
 
-        // Update accelerations and velocities
+        // Compute accelerations based on updated positions
+        RateOfChange(x, k1);
+
         for (int i = 0; i < numBodies; i++)
         {
-            accelerationsPrev[i] = accelerations[i];
-            accelerations[i] = Acceleration(i);
-            velocities[i] += 0.5f * deltaTime * (accelerationsPrev[i] + accelerations[i]);
+            // Update velocities
+            x[i * 6 + 3] += 0.5f * deltaTime * (store[i * 6 + 3] + k1[i * 6 + 3]);
+            x[i * 6 + 4] += 0.5f * deltaTime * (store[i * 6 + 4] + k1[i * 6 + 4]);
+            x[i * 6 + 5] += 0.5f * deltaTime * (store[i * 6 + 5] + k1[i * 6 + 5]);
+
+            // Keep previous acceleration values
+            store[i * 6 + 3] = k1[i * 6 + 3];
+            store[i * 6 + 4] = k1[i * 6 + 4];
+            store[i * 6 + 5] = k1[i * 6 + 5];
+        }
+    }
+
+    private void RK4Step(float deltaTime)
+    {
+        RateOfChange(x, k1);
+        for (int i = 0; i < numEquations; i++)
+        {
+            store[i] = x[i] + k1[i] * deltaTime / 2.0;
+        }
+        RateOfChange(store, k2);
+        for (int i = 0; i < numEquations; i++)
+        {
+            store[i] = x[i] + k2[i] * deltaTime / 2.0;
+        }
+        RateOfChange(store, k3);
+        for (int i = 0; i < numEquations; i++)
+        {
+            store[i] = x[i] + k3[i] * deltaTime;
+        }
+        RateOfChange(store, k4);
+        for (int i = 0; i < numEquations; i++)
+        {
+            x[i] = x[i] + (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]) * deltaTime / 6.0;
+        }
+    }
+
+    private void RateOfChange(double[] x, double[] xdot)
+    {
+        //// Set xdot
+        //for (int i = 0; i < numBodies; i++)
+        //{
+        //    xdot[i * 6 + 0] = x[i * 6 + 3];
+        //    xdot[i * 6 + 1] = x[i * 6 + 4];
+        //    xdot[i * 6 + 2] = x[i * 6 + 5];
+        //}
+
+        //// Zero out vdot
+        //for (int i = 0; i < numBodies; i++)
+        //{
+        //    xdot[i * 6 + 3] = 0;
+        //    xdot[i * 6 + 4] = 0;
+        //    xdot[i * 6 + 5] = 0;
+        //}
+
+        for (int i = 0; i < numBodies; i++)
+        {
+            xdot[i * 6 + 0] = x[i * 6 + 3];
+            xdot[i * 6 + 1] = x[i * 6 + 4];
+            xdot[i * 6 + 2] = x[i * 6 + 5];
+            xdot[i * 6 + 3] = 0;
+            xdot[i * 6 + 4] = 0;
+            xdot[i * 6 + 5] = 0;
+        }
+
+        // Compute new acceleration
+        for (int i = 0; i < numBodies; i++)
+        {
+            for (int j = i + 1; j < numBodies; j++)
+            {
+                double dx = x[j * 6 + 0] - x[i * 6 + 0];
+                double dy = x[j * 6 + 1] - x[i * 6 + 1];
+                double dz = x[j * 6 + 2] - x[i * 6 + 2];
+                double dr2 = dx * dx + dy * dy + dz * dz + epsilon * epsilon;
+                double dr = System.Math.Sqrt(dr2);
+                xdot[i * 6 + 3] += newtonG * mass / dr2 * dx / dr;
+                xdot[i * 6 + 4] += newtonG * mass / dr2 * dy / dr;
+                xdot[i * 6 + 5] += newtonG * mass / dr2 * dz / dr;
+                xdot[j * 6 + 3] -= newtonG * mass / dr2 * dx / dr;
+                xdot[j * 6 + 4] -= newtonG * mass / dr2 * dy / dr;
+                xdot[j * 6 + 5] -= newtonG * mass / dr2 * dz / dr;
+            }
         }
     }
 
     private void GenerateInitialPositions(bool workInCMFrame = true)
     {
-        positions = new List<Vector3>(numBodies);
+        //positions = new List<Vector3>(numBodies);
+        x = new double[6 * numBodies];
         positionCM = Vector3.zero;
 
         float turnFraction = 0.5f * (1 + Mathf.Sqrt(5));  // golden ratio
 
+        // Evenly space N bodies around a sphere
         for (int i = 0; i < numBodies; i++)
         {
             float t = i / (numBodies - 1f);
             float inclination = Mathf.Acos(1 - 2 * t);
             float azimuth = 2 * Mathf.PI * turnFraction * i;
 
-            float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
-            float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
-            float z = Mathf.Cos(inclination);
+            float positionX = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
+            float positionY = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
+            float positionZ = Mathf.Cos(inclination);
 
             float radius = Mathf.Abs(Utils.Random.NormalValue(radialMean, radialSigma));
             //Vector3 position = radius * Random.onUnitSphere;
-            Vector3 position = radius * new Vector3(x, y, z);
-            positions.Add(position);
-            positionCM += position;
+            //Vector3 position = radius * new Vector3(positionX, positionY, positionZ);
+            //positions.Add(position);
+            x[i * 6 + 0] = radius * positionX;
+            x[i * 6 + 1] = radius * positionY;
+            x[i * 6 + 2] = radius * positionZ;
+            positionCM += radius * new Vector3(positionX, positionY, positionZ);
         }
 
         positionCM /= numBodies;
@@ -312,7 +409,10 @@ public class NBodySimulation : Simulation
         {
             for (int i = 0; i < numBodies; i++)
             {
-                positions[i] -= positionCM;
+                //positions[i] -= positionCM;
+                x[i * 6 + 0] -= positionCM.x;
+                x[i * 6 + 1] -= positionCM.y;
+                x[i * 6 + 2] -= positionCM.z;
             }
 
             positionCM = Vector3.zero;
@@ -323,7 +423,9 @@ public class NBodySimulation : Simulation
         {
             for (int i = 0; i < numBodies; i++)
             {
-                prefabs.bodies[i].position = positions[i];
+                //prefabs.bodies[i].position = positions[i];
+                Vector3 position = new Vector3((float)x[i * 6 + 0], (float)x[i * 6 + 1], (float)x[i * 6 + 2]);
+                prefabs.bodies[i].position = position;
                 prefabs.bodies[i].localScale = bodyScale * Vector3.one;
             }
         }
@@ -340,7 +442,7 @@ public class NBodySimulation : Simulation
             Debug.Log("Computed mean speed = " + mean);
         }
 
-        velocities = new List<Vector3>(numBodies);
+        //velocities = new List<Vector3>(numBodies);
         velocityCM = Vector3.zero;
 
         for (int i = 0; i < numBodies; i++)
@@ -352,7 +454,11 @@ public class NBodySimulation : Simulation
             //Vector3 velocity = new Vector3(vx, vy, vz);
             float speed = Utils.Random.NormalValue(mean, sigma);
             Vector3 velocity = speed * Random.onUnitSphere;
-            velocities.Add(velocity);
+            //velocities.Add(velocity);
+            x[i * 6 + 3] = velocity.x;
+            x[i * 6 + 4] = velocity.y;
+            x[i * 6 + 5] = velocity.z;
+
             velocityCM += velocity;
         }
 
@@ -362,7 +468,10 @@ public class NBodySimulation : Simulation
         {
             for (int i = 0; i < numBodies; i++)
             {
-                velocities[i] -= velocityCM;
+                //velocities[i] -= velocityCM;
+                x[i * 6 + 3] -= velocityCM.x;
+                x[i * 6 + 4] -= velocityCM.y;
+                x[i * 6 + 5] -= velocityCM.z;
             }
 
             velocityCM = Vector3.zero;
@@ -376,7 +485,7 @@ public class NBodySimulation : Simulation
         {
             for (int j = i + 1; j < numBodies; j++)
             {
-                currentU += GravitationalPotentialEnergy(positions[i], positions[j]);
+                currentU += GravitationalPotentialEnergy(i, j);
             }
         }
     }
@@ -386,7 +495,10 @@ public class NBodySimulation : Simulation
         currentK = 0;
         for (int i = 0; i < numBodies; i++)
         {
-            currentK += 0.5f * mass * velocities[i].sqrMagnitude;
+            double v2 = x[i * 6 + 3] * x[i * 6 + 3];
+            v2 += x[i * 6 + 4] * x[i * 6 + 4];
+            v2 += x[i * 6 + 5] * x[i * 6 + 5];
+            currentK += 0.5f * mass * (float)v2;
         }
     }
 
@@ -395,40 +507,46 @@ public class NBodySimulation : Simulation
         Vector3 currentL = Vector3.zero;
         for (int i = 0; i < numBodies; i++)
         {
-            currentL += mass * Vector3.Cross(positions[i] - origin, velocities[i]);
+            Vector3 position = new Vector3((float)x[i * 6 + 0], (float)x[i * 6 + 1], (float)x[i * 6 + 2]);
+            Vector3 velocity = new Vector3((float)x[i * 6 + 3], (float)x[i * 6 + 4], (float)x[i * 6 + 5]);
+            currentL += mass * Vector3.Cross(position - origin, velocity);
         }
         return currentL;
     }
 
-    public float GravitationalPotentialEnergy(Vector3 position1, Vector3 position2)
+    public float GravitationalPotentialEnergy(int i, int j)
     {
-        return -G * mass * mass / Vector3.Distance(position1, position2);
+        double dx = x[j * 6 + 0] - x[i * 6 + 0];
+        double dy = x[j * 6 + 1] - x[i * 6 + 1];
+        double dz = x[j * 6 + 2] - x[i * 6 + 2];
+        float r = (float)System.Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        return -G * mass * mass / r;
     }
 
     // Acceleration of the body at index due to the positions of all other bodies
-    public Vector3 Acceleration(int index)
-    {
-        Vector3 acceleration = Vector3.zero;
-        for (int i = 0; i < numBodies; i++)
-        {
-            // Don't need to avoid i == index, since we have softening
-            Vector3 r = positions[i] - positions[index];
-            acceleration += r / Mathf.Pow(r.sqrMagnitude + epsilon * epsilon, 1.5f);
-        }
+    //public Vector3 Acceleration(int index)
+    //{
+    //    Vector3 acceleration = Vector3.zero;
+    //    for (int i = 0; i < numBodies; i++)
+    //    {
+    //        // Don't need to avoid i == index, since we have softening
+    //        Vector3 r = positions[i] - positions[index];
+    //        acceleration += r / Mathf.Pow(r.sqrMagnitude + epsilon * epsilon, 1.5f);
+    //    }
 
-        return G * mass * acceleration;
-    }
+    //    return G * mass * acceleration;
+    //}
 
-    private void ComputeInitAccelerations()
-    {
-        accelerations = new List<Vector3>(numBodies);
-        accelerationsPrev = new List<Vector3>(numBodies);
-        for (int i = 0; i < numBodies; i++)
-        {
-            accelerations.Add(Acceleration(i));
-            accelerationsPrev.Add(Vector3.zero);
-        }
-    }
+    //private void ComputeInitAccelerations()
+    //{
+    //    accelerations = new List<Vector3>(numBodies);
+    //    accelerationsPrev = new List<Vector3>(numBodies);
+    //    for (int i = 0; i < numBodies; i++)
+    //    {
+    //        accelerations.Add(Acceleration(i));
+    //        accelerationsPrev.Add(Vector3.zero);
+    //    }
+    //}
 
     public float ComputeEnergies()
     {
@@ -438,13 +556,21 @@ public class NBodySimulation : Simulation
         float maxDistance = 0;
         for (int i = 0; i < numBodies; i++)
         {
-            currentK += 0.5f * mass * velocities[i].sqrMagnitude;
-            maxDistance = Mathf.Max(maxDistance, positions[i].magnitude);
-            positionCM += positions[i];
+            // Add to current K
+            double v2 = x[i * 6 + 3] * x[i * 6 + 3];
+            v2 += x[i * 6 + 4] * x[i * 6 + 4];
+            v2 += x[i * 6 + 5] * x[i * 6 + 5];
+            currentK += 0.5f * mass * (float)v2;
+
+            float x1 = (float)x[i * 6 + 0];
+            float x2 = (float)x[i * 6 + 1];
+            float x3 = (float)x[i * 6 + 2];
+            maxDistance = Mathf.Max(maxDistance, Mathf.Sqrt(x1 * x1 + x2 * x2 + x3 * x3));
+            positionCM += new Vector3(x1, x2, x3);
 
             for (int j = i + 1; j < numBodies; j++)
             {
-                currentU += GravitationalPotentialEnergy(positions[i], positions[j]);
+                currentU += GravitationalPotentialEnergy(i, j);
             }
         }
 
@@ -463,7 +589,9 @@ public class NBodySimulation : Simulation
         Vector3 velocity = Vector3.zero;
         if (index >= 0 && index < numBodies)
         {
-            velocity = velocities[index];
+            velocity.x = (float)x[index * 6 + 3];
+            velocity.y = (float)x[index * 6 + 4];
+            velocity.z = (float)x[index * 6 + 5];
         }
         return velocity;
     }

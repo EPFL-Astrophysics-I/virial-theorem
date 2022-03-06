@@ -4,9 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NBodySlideController : SimulationSlideController
+public class FastNBodySlideController : SimulationSlideController
 {
-    private NBodySimulation sim;
+    private FastNBodySimulation sim;
     private NBodyPrefabs prefabs;
 
     [Header("Reset Properties")]
@@ -63,7 +63,7 @@ public class NBodySlideController : SimulationSlideController
 
     private void Start()
     {
-        sim = (NBodySimulation)simulation;
+        sim = (FastNBodySimulation)simulation;
         if (!simulation.TryGetComponent(out prefabs))
         {
             Debug.LogWarning("Did not find an NBodyPrefabs component");
@@ -320,7 +320,7 @@ public class NBodySlideController : SimulationSlideController
             {
                 Transform body2 = prefabs.bodies[indices[j]];
 
-                currentU += sim.GravitationalPotentialEnergy(body1.position, body2.position);
+                currentU += sim.GravitationalPotentialEnergy(i, j);
 
                 LineRenderer connector = Instantiate(connectorPrefab, Vector3.zero, Quaternion.identity, simulation.transform).GetComponent<LineRenderer>();
                 connector.startWidth = lineWidth;

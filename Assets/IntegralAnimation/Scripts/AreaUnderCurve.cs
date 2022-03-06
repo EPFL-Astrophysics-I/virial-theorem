@@ -63,7 +63,7 @@ public class AreaUnderCurve : MonoBehaviour
         vertexBuffer.Clear();
         triangleBuffer.Clear();
 
-        // Add back the origin
+        // Always add back the origin
         vertexBuffer.Add(Vector3.zero);
         currentPointIndex = 0;
     }

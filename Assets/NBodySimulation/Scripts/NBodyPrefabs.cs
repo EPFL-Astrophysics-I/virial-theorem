@@ -121,4 +121,9 @@ public class NBodyPrefabs : MonoBehaviour
             bodyContainer = null;
         }
     }
+
+    public bool BodiesHaveLabels()
+    {
+        return bodyPrefab.transform.Find("Label") != null;
+    }
 }

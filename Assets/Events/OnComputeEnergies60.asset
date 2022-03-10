@@ -10,5 +10,5 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38e2cadec2ce0482b8a7a03e230ab2f5, type: 3}
-  m_Name: OnMaxDistanceReached30
+  m_Name: OnComputeEnergies60
   m_EditorClassIdentifier: 

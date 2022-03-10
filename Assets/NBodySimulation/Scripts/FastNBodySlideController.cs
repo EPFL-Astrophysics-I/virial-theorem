@@ -21,9 +21,12 @@ public class FastNBodySlideController : SimulationSlideController
     [Header("Equations / Displays")]
     [SerializeField] private RectTransform equationK;
     [SerializeField] private RectTransform panelK;
+    [SerializeField] private MeterFill meterK;
     [SerializeField] private RectTransform equationU;
     [SerializeField] private RectTransform panelU;
+    [SerializeField] private MeterFill meterU;
     [SerializeField] private RectTransform dataPanel;
+    [SerializeField] private FadeOutUI handRotate;
 
     [Header("Buttons")]
     [SerializeField] private Button computeKButton;
@@ -47,6 +50,9 @@ public class FastNBodySlideController : SimulationSlideController
     [Header("Vectors")]
     [SerializeField] private GameObject velocityPrefab;
 
+    [Header("Body Labels")]
+    [SerializeField] private List<Sprite> bodyLabels;
+
     private HashSet<RectTransform> equations;
     private HashSet<Button> buttons;
     private HashSet<Slider> sliders;
@@ -61,7 +67,7 @@ public class FastNBodySlideController : SimulationSlideController
     private TextMeshProUGUI dataPanelE;
     private TextMeshProUGUI dataPanelV;
 
-    private void Start()
+    private void Awake()
     {
         sim = (FastNBodySimulation)simulation;
         if (!simulation.TryGetComponent(out prefabs))
@@ -121,8 +127,6 @@ public class FastNBodySlideController : SimulationSlideController
             dataPanelE = dataPanel.Find("E Value").GetComponent<TextMeshProUGUI>();
             dataPanelV = dataPanel.Find("V Value").GetComponent<TextMeshProUGUI>();
         }
-
-        HideTextPanels();
     }
 
     public override void InitializeSlide()
@@ -141,9 +145,11 @@ public class FastNBodySlideController : SimulationSlideController
         prefabs.SetLightsVisibility(lights);
 
         ResetBodyMaterials();
+        HideBodyLabels();
         SetButtonsInteractivity(true);
         ShowAllUI();
         HideTextPanels();
+        SetDataPanelVisibility(autoPlay);
 
         if (startButton && !autoPlay)
         {
@@ -151,6 +157,11 @@ public class FastNBodySlideController : SimulationSlideController
             {
                 child.gameObject.SetActive(child.name == "Start Text");
             }
+        }
+
+        if (handRotate)
+        {
+            handRotate.TriggerReset();
         }
     }
 
@@ -197,21 +208,25 @@ public class FastNBodySlideController : SimulationSlideController
 
     public void ComputeKVisually()
     {
+        UpdateKMeter(0);
         SetUVisibility(false);
         SetButtonsInteractivity(false);
         simulation.Pause();
-        StartCoroutine(LoopOverBodies());
+        sim.ComputeKineticEnergy();
+        StartCoroutine(LoopOverBodies(sim.K));
     }
 
     public void ComputeUVisually()
     {
+        UpdateUMeter(0);
         SetKVisibility(false);
         SetButtonsInteractivity(false);
         simulation.Pause();
-        StartCoroutine(LoopOverBodiesWithConnections());
+        sim.ComputePotentialEnergy();
+        StartCoroutine(LoopOverBodiesWithConnections(sim.U));
     }
 
-    private IEnumerator LoopOverBodies()
+    private IEnumerator LoopOverBodies(float maxValue)
     {
         int[] indices = GetSortedIndices();
         float currentK = 0;
@@ -250,8 +265,21 @@ public class FastNBodySlideController : SimulationSlideController
                 value.text = currentK.ToString("0.00");
             }
 
+            UpdateKMeter(currentK / maxValue);
+
             // Highlight the current body
             body.GetComponent<MeshRenderer>().material = glowMaterial;
+
+            // Show appropriate index label
+            if (bodyLabels.Count > i && prefabs.BodiesHaveLabels())
+            {
+                Transform label = body.Find("Label");
+                if (label)
+                {
+                    label.GetComponent<SpriteRenderer>().sprite = bodyLabels[i];
+                    label.gameObject.SetActive(true);
+                }
+            }
 
             // Draw the body's velocity vector
             if (velocityPrefab)
@@ -269,17 +297,20 @@ public class FastNBodySlideController : SimulationSlideController
                 Destroy(velocityVector.gameObject);
                 velocityVector = null;
             }
+
+            HideBodyLabels();
         }
 
         yield return new WaitForSeconds(2);
 
         ResetBodyMaterials();
+        HideBodyLabels();
         SetButtonsInteractivity(true);
         SetUVisibility(true);
         simulation.Resume();
     }
 
-    private IEnumerator LoopOverBodiesWithConnections()
+    private IEnumerator LoopOverBodiesWithConnections(float maxValue)
     {
         int[] indices = GetSortedIndices();
         float currentU = 0;
@@ -314,6 +345,17 @@ public class FastNBodySlideController : SimulationSlideController
             // Highlight the current body
             body1.GetComponent<MeshRenderer>().material = glowMaterial;
 
+            // Show appropriate index label
+            if (bodyLabels.Count > i && prefabs.BodiesHaveLabels())
+            {
+                Transform label = body1.Find("Label");
+                if (label)
+                {
+                    label.GetComponent<SpriteRenderer>().sprite = bodyLabels[i];
+                    label.gameObject.SetActive(true);
+                }
+            }
+
             // Connect the current body with remaining others
             connectors = new HashSet<GameObject>();
             for (int j = i + 1; j < indices.Length; j++)
@@ -336,12 +378,16 @@ public class FastNBodySlideController : SimulationSlideController
                 value.text = currentU.ToString("0.00");
             }
 
+            UpdateUMeter(currentU / maxValue);
+
             yield return new WaitForSeconds(0.4f);
 
             foreach (GameObject connector in connectors)
             {
                 Destroy(connector);
             }
+
+            HideBodyLabels();
         }
 
         yield return new WaitForSeconds(2);
@@ -440,8 +486,6 @@ public class FastNBodySlideController : SimulationSlideController
         {
             panelU.gameObject.SetActive(false);
         }
-
-        SetDataPanelVisibility(false);
     }
 
     private void SetDataPanelVisibility(bool visible)
@@ -507,7 +551,46 @@ public class FastNBodySlideController : SimulationSlideController
         }
         if (dataPanelV)
         {
-            dataPanelV.text = sim.averageVirial.ToString("0.0");
+            dataPanelV.text = (sim.averageVirial / sim.E).ToString("0.0");
+        }
+    }
+
+    private void HideBodyLabels()
+    {
+        if (prefabs.BodiesHaveLabels())
+        {
+            foreach (Transform body in prefabs.bodies)
+            {
+                Transform label = body.Find("Label");
+                if (label)
+                {
+                    label.gameObject.SetActive(false);
+                }
+            }
+        }
+    }
+
+    private void UpdateKMeter(float fillAmount)
+    {
+        if (meterK)
+        {
+            meterK.SetFillAmount(fillAmount);
+        }
+    }
+
+    private void UpdateUMeter(float fillAmount)
+    {
+        if (meterU)
+        {
+            meterU.SetFillAmount(fillAmount);
+        }
+    }
+
+    public void HandleCameraHasRotated()
+    {
+        if (handRotate)
+        {
+            handRotate.TriggerFadeOut();
         }
     }
 }

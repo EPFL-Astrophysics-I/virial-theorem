@@ -47,11 +47,6 @@ public class FastNBodySimulation : Simulation
 
     // Quantities of motion
     private double[] x;  // positions and velocities
-    //private double[] xPrev;
-    //private List<Vector3> positions;
-    //private List<Vector3> velocities;
-    //private List<Vector3> accelerations;
-    //private List<Vector3> accelerationsPrev;  // Keep track of previous accel. for Verlet solver
     private float currentK;
     private float currentU;
     private float totalEnergy;
@@ -447,14 +442,8 @@ public class FastNBodySimulation : Simulation
 
         for (int i = 0; i < numBodies; i++)
         {
-            //float vx = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
-            //float vy = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
-            //float vz = Utils.Random.NormalValue(mean / Mathf.Sqrt(3), 0);
-            //float vz = -(position.x * vx + position.y * vy) / position.z;
-            //Vector3 velocity = new Vector3(vx, vy, vz);
             float speed = Utils.Random.NormalValue(mean, sigma);
             Vector3 velocity = speed * Random.onUnitSphere;
-            //velocities.Add(velocity);
             x[i * 6 + 3] = velocity.x;
             x[i * 6 + 4] = velocity.y;
             x[i * 6 + 5] = velocity.z;
@@ -478,7 +467,7 @@ public class FastNBodySimulation : Simulation
         }
     }
 
-    private void ComputePotentialEnergy()
+    public void ComputePotentialEnergy()
     {
         currentU = 0;
         for (int i = 0; i < numBodies; i++)
@@ -490,7 +479,7 @@ public class FastNBodySimulation : Simulation
         }
     }
 
-    private void ComputeKineticEnergy()
+    public void ComputeKineticEnergy()
     {
         currentK = 0;
         for (int i = 0; i < numBodies; i++)

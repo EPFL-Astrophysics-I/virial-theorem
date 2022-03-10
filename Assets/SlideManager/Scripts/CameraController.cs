@@ -24,16 +24,18 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float minZoom = 5;
     [SerializeField] private float maxZoom = 50;
 
-    [SerializeField] private AnimationCurve rotationCurve;
+    [SerializeField] private AnimationCurve rotationCurve = default;
 
     private Camera mainCamera;
     private Coroutine cameraMoving;
     private Coroutine cameraChangingColor;
 
     private bool clickedOnUIElement;
-    private Vector3 mouseStartPosition;
+    private Vector3 mouseStartPosition = Vector3.zero;
     private Vector3 cameraStartPosition;
     private Quaternion cameraStartRotation;
+
+    private bool cameraHasRotated;
 
     public void AssignCameraReference(Camera camera)
     {
@@ -53,6 +55,7 @@ public class CameraController : MonoBehaviour
             StopCoroutine(cameraChangingColor);
         }
         mainCamera = null;
+        cameraHasRotated = false;
     }
 
     // For zooming in and out
@@ -101,6 +104,13 @@ public class CameraController : MonoBehaviour
             clickedOnUIElement = EventSystem.current.IsPointerOverGameObject();
         }
 
+        // HACK Do not allow any action if mouse start position has not been set by a user click
+        // Otherwise strange behavior happens trying to rotate too soon when loading a slide
+        if (mouseStartPosition == Vector3.zero)
+        {
+            return;
+        }
+
         if (Input.GetMouseButton(0) && !clickedOnUIElement)
         {
             Vector3 axis = Vector3.zero;
@@ -121,9 +131,15 @@ public class CameraController : MonoBehaviour
             mainCamera.transform.SetPositionAndRotation(newPosition, newRotation);
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0) && !clickedOnUIElement)
         {
             clickedOnUIElement = false;
+
+            if (!cameraHasRotated)
+            {
+                cameraHasRotated = true;
+                BroadcastMessage("HandleCameraHasRotated", SendMessageOptions.DontRequireReceiver);
+            }
         }
     }
 

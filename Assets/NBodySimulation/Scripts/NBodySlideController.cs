@@ -61,7 +61,7 @@ public class NBodySlideController : SimulationSlideController
     private TextMeshProUGUI dataPanelE;
     private TextMeshProUGUI dataPanelV;
 
-    private void Start()
+    private void Awake()
     {
         sim = (NBodySimulation)simulation;
         if (!simulation.TryGetComponent(out prefabs))
@@ -121,8 +121,6 @@ public class NBodySlideController : SimulationSlideController
             dataPanelE = dataPanel.Find("E Value").GetComponent<TextMeshProUGUI>();
             dataPanelV = dataPanel.Find("V Value").GetComponent<TextMeshProUGUI>();
         }
-
-        HideTextPanels();
     }
 
     public override void InitializeSlide()
@@ -144,6 +142,7 @@ public class NBodySlideController : SimulationSlideController
         SetButtonsInteractivity(true);
         ShowAllUI();
         HideTextPanels();
+        SetDataPanelVisibility(autoPlay);
 
         if (startButton && !autoPlay)
         {
@@ -440,8 +439,6 @@ public class NBodySlideController : SimulationSlideController
         {
             panelU.gameObject.SetActive(false);
         }
-
-        SetDataPanelVisibility(false);
     }
 
     private void SetDataPanelVisibility(bool visible)

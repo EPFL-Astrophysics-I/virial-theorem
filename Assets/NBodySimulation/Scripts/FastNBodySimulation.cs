@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FastNBodySimulation : Simulation
 {
@@ -104,9 +102,9 @@ public class FastNBodySimulation : Simulation
 
     public void CustomReset(bool generatePositions = true, bool generateVelocities = true, bool matchHalfU = true)
     {
-        Debug.Log("N = " + numBodies);
-        Debug.Log("R = " + radialMean);
-        Debug.Log("V = " + speedMean);
+        //Debug.Log("N = " + numBodies);
+        //Debug.Log("R = " + radialMean);
+        //Debug.Log("V = " + speedMean);
 
         iteration = 0;
         numSamples = 0;
@@ -125,7 +123,7 @@ public class FastNBodySimulation : Simulation
         {
             GenerateInitialPositions(true);
             ComputePotentialEnergy();
-            Debug.Log("U : " + U);
+            //Debug.Log("U : " + U);
 
             // Place the center of mass marker
             if (prefabs.centerOfMass)
@@ -142,7 +140,7 @@ public class FastNBodySimulation : Simulation
             }
             GenerateInitialVelocities(true, matchHalfU);
             ComputeKineticEnergy();
-            Debug.Log("K : " + K);
+            //Debug.Log("K : " + K);
         }
 
         // For Verlet
@@ -163,7 +161,7 @@ public class FastNBodySimulation : Simulation
         totalEnergy = K + U;
         averageVirial = 2 * K + U;
         previousVirial = averageVirial;
-        Debug.Log("2K + U = " + averageVirial);
+        //Debug.Log("2K + U = " + averageVirial);
 
         if (onComputeEnergies)
         {
@@ -434,7 +432,7 @@ public class FastNBodySimulation : Simulation
         {
             mean = Mathf.Sqrt(-U / mass / numBodies);
             sigma = 0.1f * mean;
-            Debug.Log("Computed mean speed = " + mean);
+            //Debug.Log("Computed mean speed = " + mean);
         }
 
         //velocities = new List<Vector3>(numBodies);
@@ -601,7 +599,7 @@ public class FastNBodySimulation : Simulation
         radialMean = value;
         radialSigma = 0;
 
-        if (EditorApplication.isPlaying)
+        if (Application.isPlaying)
         {
             CustomReset(true, false, false);
         }
@@ -612,7 +610,7 @@ public class FastNBodySimulation : Simulation
     {
         numBodies = (int)value;
 
-        if (EditorApplication.isPlaying)
+        if (Application.isPlaying)
         {
             prefabs.DestroyBodies();
             prefabs.CreateBodies(numBodies);
@@ -626,7 +624,7 @@ public class FastNBodySimulation : Simulation
         speedMean = value;
         speedSigma = 0.1f * speedMean;
 
-        if (EditorApplication.isPlaying)
+        if (Application.isPlaying)
         {
             CustomReset(false, true, false);
         }

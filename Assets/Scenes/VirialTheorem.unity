@@ -1060,7 +1060,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 106060631}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -1311,7 +1311,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &115439422
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1323,6 +1323,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 135616139}
+  - {fileID: 748119842}
   - {fileID: 1271756300}
   m_Father: {fileID: 1856087112}
   m_RootOrder: 0
@@ -1353,8 +1355,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Despite not having an exact solution, there are still ways of characterizing
     global properties of interacting N-body systems. This is what the <b>virial theorem</b>
-    does by relating the time- averaged kinetic energy of the system to the time-averaged
-    total potential energy:'
+    does by relating the time- averaged kinetic energy (    ) of the system to the
+    time-averaged total potential energy (    ):'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -1463,6 +1465,154 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &132668613
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 132668614}
+  - component: {fileID: 132668616}
+  - component: {fileID: 132668615}
+  m_Layer: 5
+  m_Name: K
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &132668614
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132668613}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
+  m_Children: []
+  m_Father: {fileID: 522025299}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -25.47, y: -161.86}
+  m_SizeDelta: {x: 80, y: 64}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &132668615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132668613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 54a2bc7e32e91473495407f9062f2878, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &132668616
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 132668613}
+  m_CullTransparentMesh: 0
+--- !u!1 &135616138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 135616139}
+  - component: {fileID: 135616141}
+  - component: {fileID: 135616140}
+  m_Layer: 5
+  m_Name: K
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &135616139
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135616138}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.19999999, y: 0.19999999, z: 1}
+  m_Children: []
+  m_Father: {fileID: 115439422}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 90.4, y: -139.4}
+  m_SizeDelta: {x: 80, y: 64}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &135616140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135616138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 54a2bc7e32e91473495407f9062f2878, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &135616141
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 135616138}
+  m_CullTransparentMesh: 0
 --- !u!1 &144087365
 GameObject:
   m_ObjectHideFlags: 0
@@ -1653,7 +1803,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Messier 80 : un amas globurlaire.'
+  m_text: L'amas globulaire Messier 80
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -1822,7 +1972,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &173306219
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1866,8 +2016,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Note that the angle brackets         in the virial theorem refer to averaging
     over <i>time</i>. It is not the case that                    must hold at any
-    one instant, but rather the average after long enough time periods     , after
-    which the system has reached a state of stable equilibrium.
+    one instant, but rather the average does after long enough time periods     
+    , after which the system has reached a state of stable equilibrium.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -2230,7 +2380,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &205663488
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2271,14 +2421,14 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Les \xE9nergies affich\xE9es sont toutes normalis\xE9es par l'\xE9nergie
-    initiale totale du syst\xE8me                          .\n\nLes simulations de
-    ce type sont tr\xE8s co\xFBteuses en termes de calcul, en particulier lorsque
-    le nombre de corps devient important. Comme toujours, il y a un compromis entre
-    la pr\xE9cision et la vitesse de calcul pour r\xE9soudre num\xE9riquement les
-    \xE9quations du mouvement. Le fait que la valeur instantan\xE9e de              
-    diff\xE8re parfois de 1 indique que des m\xE9thodes plus pr\xE9cises pourraient
-    \xEAtre n\xE9cessaires."
+  m_text: "Les \xE9nergies affich\xE9es sont toutes normalis\xE9es par la valeur
+    initiale de l\u2019\xE9nergie totale du syst\xE8me                          
+    .\n\nLes simulations de ce type sont tr\xE8s co\xFBteuses en termes de calcul,
+    en particulier lorsque le nombre de corps devient grand. Comme toujours, il y
+    a un compromis entre la pr\xE9cision et la vitesse de calcul pour r\xE9soudre
+    num\xE9riquement les \xE9quations du mouvement. Le fait que la valeur instantan\xE9e
+    de                diff\xE8re parfois d\u2019une unit\xE9 indique que des m\xE9thodes
+    plus pr\xE9cises pourraient \xEAtre n\xE9cessaires."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -2323,7 +2473,7 @@ MonoBehaviour:
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
   m_enableWordWrapping: 1
-  m_wordWrappingRatios: 0.4
+  m_wordWrappingRatios: 0.8
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
@@ -2657,7 +2807,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: The Messier 80 globular cluster.
+  m_text: The Messier 80 globular cluster
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -3635,6 +3785,80 @@ RectTransform:
   m_AnchoredPosition: {x: -5, y: 0}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &380882073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 380882074}
+  - component: {fileID: 380882076}
+  - component: {fileID: 380882075}
+  m_Layer: 5
+  m_Name: U
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &380882074
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380882073}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.2, y: 0.2, z: 1}
+  m_Children: []
+  m_Father: {fileID: 522025299}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 103.2, y: -205.7}
+  m_SizeDelta: {x: 64, y: 72}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &380882075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380882073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: c8d7d6c700caa4d2d9744022b52c5c8b, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &380882076
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380882073}
+  m_CullTransparentMesh: 0
 --- !u!1 &416292247
 GameObject:
   m_ObjectHideFlags: 0
@@ -4260,7 +4484,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &522025299
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4272,6 +4496,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
+  - {fileID: 132668614}
+  - {fileID: 380882074}
   - {fileID: 698748897}
   m_Father: {fileID: 1856087112}
   m_RootOrder: 1
@@ -4302,9 +4528,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: "Bien qu'il n'existe pas de solution exacte, il est toujours possible de
     caract\xE9riser les propri\xE9t\xE9s globales des syst\xE8mes \xE0 N corps. C'est
-    ce que fait le <b>th\xE9or\xE8me du viriel</b> en reliant l'\xE9nergie cin\xE9tique
-    (K) du syst\xE8me, moyenn\xE9e dans le temps, \xE0 l'\xE9nergie potentielle totale
-    (U) moyenn\xE9e dans le temps :"
+    ce que fait le <b>th\xE9or\xE8me du viriel</b> en reliant la moyenne temporelle
+    de l\u2019\xE9nergie cin\xE9tique (    ) du syst\xE8me \xE0 la moyenne temporelle
+    de l\u2019\xE9nergie potentielle totale (     ) :"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -4349,7 +4575,7 @@ MonoBehaviour:
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
   m_enableWordWrapping: 1
-  m_wordWrappingRatios: 0.4
+  m_wordWrappingRatios: 0.5
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
@@ -4623,7 +4849,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &580331243
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4801,7 +5027,7 @@ MonoBehaviour:
     type: 3}
   xMin: 0
   xMax: 7.6
-  speed: 1.4
+  speed: 3
   lineWidth: 0.1
   numAreaSamples: 800
   onIntegrate: {fileID: 11400000, guid: 18599d726eb3d4a73833b40d67ccdb1d, type: 2}
@@ -5071,7 +5297,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -132.39, y: -70.02}
+  m_AnchoredPosition: {x: 181, y: -47.6}
   m_SizeDelta: {x: 128, y: 128}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &592721038
@@ -5580,7 +5806,7 @@ RectTransform:
   m_LocalScale: {x: 0.19999997, y: 0.19999997, z: 1}
   m_Children: []
   m_Father: {fileID: 522025299}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
@@ -6021,6 +6247,80 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 744315263}
+  m_CullTransparentMesh: 0
+--- !u!1 &748119841
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 748119842}
+  - component: {fileID: 748119844}
+  - component: {fileID: 748119843}
+  m_Layer: 5
+  m_Name: U
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &748119842
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748119841}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.19999999, y: 0.19999999, z: 1}
+  m_Children: []
+  m_Father: {fileID: 115439422}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 64.7, y: -182.4}
+  m_SizeDelta: {x: 64, y: 72}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &748119843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748119841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: c8d7d6c700caa4d2d9744022b52c5c8b, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &748119844
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748119841}
   m_CullTransparentMesh: 0
 --- !u!1 &748796379
 GameObject:
@@ -7403,7 +7703,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -103.43, y: -4.13}
+  m_AnchoredPosition: {x: -108.1, y: -4.13}
   m_SizeDelta: {x: 160, y: 88}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &867419916
@@ -7990,7 +8290,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -7, y: -122.3}
+  m_AnchoredPosition: {x: 10.5, y: -122.3}
   m_SizeDelta: {x: 240, y: 72}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &921777958
@@ -8539,7 +8839,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 188.8, y: -24.08}
+  m_AnchoredPosition: {x: 88.8, y: -24.08}
   m_SizeDelta: {x: 344, y: 72}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &982118496
@@ -8596,7 +8896,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &988990109
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8638,11 +8938,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Notez que les crochets           dans le th\xE9or\xE8me du viriel font
-    r\xE9f\xE9rence au calcul de la moyenne dans le temps. Cela veut dire que l\u2019\xE9galit\xE9                    
-    n'est pas forc\xE9ment respect\xE9e \xE0 chaque instant, mais plut\xF4t en moyenne
-    apr\xE8s des p\xE9riodes de temps      suffisamment longues, apr\xE8s lesquelles
-    le syst\xE8me a atteint un \xE9tat d'\xE9quilibre stable."
+  m_text: "Notez que la notation        dans le th\xE9or\xE8me du viriel indique
+    une moyenne dans le temps. Cela veut dire que l\u2019\xE9galit\xE9                     
+    n'est pas forc\xE9ment exacte \xE0 chaque instant, mais en moyenne apr\xE8s une
+    p\xE9riode       suffisamment longue, apr\xE8s laquelle le syst\xE8me a atteint
+    un \xE9tat d'\xE9quilibre stable."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -8687,7 +8987,7 @@ MonoBehaviour:
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
   m_enableWordWrapping: 1
-  m_wordWrappingRatios: 0.4
+  m_wordWrappingRatios: 1
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
@@ -10274,10 +10574,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\xC0 un instant donn\xE9, les \xE9nergies concern\xE9es du th\xE9or\xE8me
-    du viriel peuvent \xEAtre calcul\xE9es \xE0 l'aide des formules classiques de
-    la m\xE9canique newtonienne. Visualisez ces sommes en cliquant sur les boutons
-    situ\xE9s sous les \xE9quations."
+  m_text: "\xC0 un instant donn\xE9, l\u2019\xE9nergie cin\xE9tique et l\u2019\xE9nergie
+    potentielle peuvent \xEAtre calcul\xE9es \xE0 l'aide des formules classiques
+    de la m\xE9canique newtonienne. Visualisez ces calculs en cliquant sur les boutons
+    situ\xE9s sous chaque \xE9quation."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -10859,10 +11159,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Le th\xE9or\xE8me du viriel est tr\xE8s utile dans l'\xE9tude des objets
-    astrophysiques, tels que les amas globulaires d'\xE9toiles et les amas de galaxies.
-    Dans l'application suivante, vous verrez comment estimer les masses de ces syst\xE8mes
-    \xE0 l'aide du th\xE9or\xE8me du viriel."
+  m_text: "Le th\xE9or\xE8me du viriel est tr\xE8s utile dans l'\xE9tude de beaucoup
+    d\u2019objets astrophysiques, tels que les amas globulaires d'\xE9toiles et les
+    amas de galaxies. Dans l'application suivante, vous verrez comment estimer les
+    masses de ces syst\xE8mes \xE0 l'aide du th\xE9or\xE8me du viriel."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -11638,7 +11938,7 @@ RectTransform:
   m_LocalScale: {x: 0.19999999, y: 0.19999999, z: 1}
   m_Children: []
   m_Father: {fileID: 115439422}
-  m_RootOrder: 0
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
@@ -12765,8 +13065,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Essayez de d\xE9finir par vous-m\xEAme les conditions initiales, puis
-    d\xE9marrer la simulation. Le syst\xE8me atteint-il l'\xE9quilibre et reste-t-il
-    coh\xE9rent ? Le th\xE9or\xE8me du viriel est-il valable ?"
+    d\xE9marrez la simulation. Le syst\xE8me atteint-il l'\xE9quilibre et reste-t-il
+    li\xE9 ? Le th\xE9or\xE8me du viriel s\u2019applique-t-il ?"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -12878,7 +13178,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -53.7, y: -19.3}
+  m_AnchoredPosition: {x: 6.2, y: -19.3}
   m_SizeDelta: {x: 464, y: 80}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1420062542
@@ -13083,7 +13383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1442760274
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18041,7 +18341,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2043622777
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18081,11 +18381,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Les conditions initiales jouent un r\xF4le crucial pour d\xE9terminer
-    si un tel syst\xE8me peut atteindre un \xE9tat stable. Les corps qui se d\xE9placent
-    trop rapidement, par exemple, surmonteront la force gravitationnelle de leurs
-    voisins et s'envoleront seuls, sans \xEAtre li\xE9s aux autres. Une \xE9nergie
-    cin\xE9tique trop faible au d\xE9part (par rapport au potentiel) peut \xE9galement
-    avoir le m\xEAme r\xE9sultat, comme vous pouvez l'explorer sur l'\xE9cran suivant."
+    si un tel syst\xE8me peut atteindre un \xE9tat stable. Par exemple, les corps
+    ayant une vitesse trop \xE9lev\xE9e peuvent vaincre l\u2019attraction gravitationnelle
+    de leurs voisins et ne plus \xEAtre li\xE9s aux autres, pour finalement quitter
+    le syst\xE8me. Le r\xE9sultat peut \xEAtre similaire si l\u2019\xE9nergie cin\xE9tique
+    initiale est trop faible par rapport \xE0 l\u2019\xE9nergie potentielle, comme
+    vous pouvez le voir sur la page suivante.\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -18130,7 +18431,7 @@ MonoBehaviour:
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
   m_enableWordWrapping: 1
-  m_wordWrappingRatios: 0.4
+  m_wordWrappingRatios: 0.5
   m_overflowMode: 0
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
@@ -18429,10 +18730,10 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "Contrairement au probl\xE8me \xE0 deux corps (chapitre 1), un syst\xE8me
-    de\ncorps en interaction gravitationnelle n'a pas de solution \xE0 forme ferm\xE9e.
-    Nous ne pouvons pas r\xE9soudre exactement l'\xE9quation du mouvement de chaque
-    corps et devons compter sur des simulations pour d\xE9couvrir comment le syst\xE8me
-    \xE9volue dans le temps."
+    de\ncorps en interaction gravitationnelle n'a pas de solution analytique. Nous
+    ne pouvons pas r\xE9soudre exactement l'\xE9quation du mouvement de chaque corps
+    et devons compter sur des simulations num\xE9riques pour d\xE9couvrir comment
+    le syst\xE8me \xE9volue dans le temps."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,
@@ -18662,7 +18963,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 66.4, y: -47.37}
+  m_AnchoredPosition: {x: 104.1, y: -47.37}
   m_SizeDelta: {x: 128, y: 128}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &2124288696
@@ -19184,7 +19485,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -60}
-  m_SizeDelta: {x: 500, y: 50}
+  m_SizeDelta: {x: 450, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2283455531231951376
 GameObject:
@@ -19518,7 +19819,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2283455532634851245}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -19791,7 +20092,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "une relation entre les \xE9nergies d'un syst\xE8me \xE0 plusieurs corps"
+  m_text: "une formule qui lie les \xE9nergies d'un syst\xE8me \xE0 plusieurs corps"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 350cfcf20da78478f9197161ac83b480, type: 2}
   m_sharedMaterial: {fileID: -1129015340585624399, guid: 350cfcf20da78478f9197161ac83b480,

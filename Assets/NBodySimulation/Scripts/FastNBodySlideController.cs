@@ -167,7 +167,6 @@ public class FastNBodySlideController : SimulationSlideController
 
     public void Reset()
     {
-        Debug.Log(transform.name + " Reset()");
         sim.CustomReset(true, true, virializeOnReset);
         if (autoPlay)
         {
